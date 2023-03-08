@@ -129,44 +129,51 @@ def get_game_participants(df_pbp):
     return list(game_players)
 
 
+def load_player(bbr_id):
+    
+    print('Loading',bbr_id, end='... ')
+    players_dict[bbr_id] = {}
+    player_dfs_to_load = ['adj_shooting','advanced','all_salaries', 'info',\
+                          'pbp','per_minute','per_poss','shooting','totals']
+    if (not os.path.isdir(f'Players/{bbr_id}')) or (len(os.listdir(f'Players/{bbr_id}')) == 0):
+
+        os.makedirs(f'Players/{bbr_id}')
+        scraped_player = scrape_players(bbr_id)
+        time.sleep(np.pi)
+        #print(type(scraped_player), scraped_player.keys())
+
+        for table_name, df in scraped_player[bbr_id].items():
+            #print(table_name, end=', ')
+            df.to_csv(f'Players/{bbr_id}/{table_name}.csv')
+            if table_name in player_dfs_to_load:
+                players_dict[bbr_id][table_name] = df
+
+    else:
+        #print(' already exists locally')
+
+
+        multiindex_col_dfs = ['playoffs_shooting','all_college_stats','pbp',
+                              'highs-playoffs','highs-reg-season','playoffs_pbp',
+                              'shooting','adj_shooting']
+        for df_path in os.listdir(f'Players/{bbr_id}'):
+            if df_path.replace('.csv','') in player_dfs_to_load:
+                if df_path.replace('.csv','') in multiindex_col_dfs:
+                    header = [0,1]
+                else:
+                    header = [0]
+                players_dict[bbr_id][df_path.replace('.csv','')] = pd.read_csv(f'Players/{bbr_id}/{df_path}', header = header, index_col=0)
+
+
+
 def get_home_players_and_load_players(df_game):
     participants = get_game_participants(df_game)
 
     for bbr_id in participants:
         if bbr_id in players_dict.keys():
             continue
-        print('Loading',bbr_id, end='... ')
-        players_dict[bbr_id] = {}
-        player_dfs_to_load = ['adj_shooting','advanced','all_salaries', 'info',\
-                              'pbp','per_minute','per_poss','shooting','totals']
-        if (not os.path.isdir(f'Players/{bbr_id}')) or (len(os.listdir(f'Players/{bbr_id}')) == 0):
-
-            os.makedirs(f'Players/{bbr_id}')
-            scraped_player = scrape_players(bbr_id)
-            time.sleep(np.pi)
-            #print(type(scraped_player), scraped_player.keys())
-
-            for table_name, df in scraped_player[bbr_id].items():
-                #print(table_name, end=', ')
-                df.to_csv(f'Players/{bbr_id}/{table_name}.csv')
-                if table_name in player_dfs_to_load:
-                    players_dict[bbr_id][table_name] = df
-
-        else:
-            print(' already exists locally')
-
-            
-            multiindex_col_dfs = ['playoffs_shooting','all_college_stats','pbp',
-                                  'highs-playoffs','highs-reg-season','playoffs_pbp',
-                                  'shooting','adj_shooting']
-            for df_path in os.listdir(f'Players/{bbr_id}'):
-                if df_path.replace('.csv','') in player_dfs_to_load:
-                    if df_path.replace('.csv','') in multiindex_col_dfs:
-                        header = [0,1]
-                    else:
-                        header = [0]
-                    players_dict[bbr_id][df_path.replace('.csv','')] = pd.read_csv(f'Players/{bbr_id}/{df_path}', header = header, index_col=0)
-
+        else: 
+            load_player(bbr_id)
+        
     def is_player_on_hometeam(bbr_id):
         try:
             if 'Tm' in players_dict[bbr_id].get('per_poss').columns:
@@ -194,6 +201,7 @@ def get_home_players_and_load_players(df_game):
 
 
     return {k:is_player_on_hometeam(k) for k in participants}
+
 
 
 def add_empty_lineup_cols(df_pbp):
@@ -510,6 +518,9 @@ def get_player_attr_value(bbr_id, df_pbp, table_name='info', col_name='age', sea
     
     '''
     #print(f"getting {bbr_id}")
+    if bbr_id not in players_dict.keys():
+        load_player(bbr_id)
+
     season_year = df_pbp['Season'].value_counts().index[0]
     if col_name.lower() == 'age':
         
