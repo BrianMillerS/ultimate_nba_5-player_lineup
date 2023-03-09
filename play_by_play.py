@@ -783,3 +783,19 @@ def get_lineup_results(df_pbp, return_lineup_matchups=True):
     
     return df_lineups
     
+
+def melt_df(df, id_cols, col_substr):
+    """melts a df, to be used as input for sns density plots
+
+    Args:
+        df (pandas.df): input data
+        id_cols (list of strings): col names to include
+        col_substr (str): column_name_starter
+
+    Returns:
+        df: melted for your use with sns functions
+    """
+    get_substr_cols = lambda x:[col for col in df.columns if x in col]
+
+    new_df = df[id_cols+get_substr_cols(col_substr)].melt(id_vars=id_cols).copy()
+    return new_df
