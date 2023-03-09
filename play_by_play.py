@@ -7,20 +7,18 @@ from BBRscrape_boxscores import scrape_boxscore
 
 
 
-player_cols = ['Shooter', 'Assister', 'Blocker', 'Fouler', 'Fouled', 'Rebounder', 
-               'ViolationPlayer', 'FreeThrowShooter', 'EnterGame', 'LeaveGame', 
-               'TurnoverPlayer', 'TurnoverCauser','JumpballAwayPlayer','JumpballHomePlayer','JumpballPoss']
+player_cols = ['Shooter', 'Assister', 'Blocker', 'Fouler', 'Fouled', 'Rebounder', 'ViolationPlayer', 'FreeThrowShooter', 'EnterGame','LeaveGame','TurnoverPlayer','TurnoverCauser','JumpballAwayPlayer','JumpballHomePlayer','JumpballPoss']
 players_dict={}
 lineup_miscounts = {}
 
-def load_seasons(seasons, lineups=False, possessions=False, drop_lineup_miscount_games=True):
+def load_seasons(seasons, lineups=False, possessions=False, drop_lineup_miscount_games=True, drop_neg_scoring_error_games=True):
     df_list = []
     for season in seasons:
         df_list.append(load_season(season, lineups=lineups, possessions=possessions, drop_lineup_miscount_games=drop_lineup_miscount_games))
     return pd.concat(df_list, axis=0), players_dict
 
 
-def load_season(season, lineups=False, possessions=False, drop_lineup_miscount_games=True):
+def load_season(season, lineups=False, possessions=False, drop_lineup_miscount_games=True, drop_neg_scoring_error_games=True):
     #lineup_miscounts = {}
     
     if isinstance(season, int):
@@ -66,6 +64,9 @@ def load_season(season, lineups=False, possessions=False, drop_lineup_miscount_g
         df_ = df_.groupby('URL', group_keys=False).apply(add_possessions)  
     if drop_lineup_miscount_games:
         df_ = df_[~ df_['URL'].isin(lineup_miscounts.keys())]
+    if drop_neg_scoring_error_games:
+        df_ = df_[~df_['URL'].isin(list(df_.loc[(df_['HomePts'] < 0) | (df_['AwayPts'] < 0), 'URL'].value_counts().index))].copy()
+    print("Neg Scoring Error Games: ", list(df_.loc[(df_['HomePts'] < 0) | (df_['AwayPts'] < 0), 'URL'].value_counts().index))
     print("Lineup Miscount Games: ", lineup_miscounts)
     return df_
 
