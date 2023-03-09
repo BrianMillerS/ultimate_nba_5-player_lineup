@@ -7,7 +7,7 @@ March 9th, 2023
 ## PROJECT OVERVIEW  
 The main goal of this analysis is to attempt to identify the best performing NBA 5-player lineup.  
 - Lineup performance was quanified using the following metric for each entire season: (# points scored - # points allowed)/ # posessions.  
-- Average lineup salary, and home court advantage were the two variables significantly associated with lineup performance (glm, p<0.05)
+- Average lineup salary, average lineupe age, and home court advantage were the three variables significantly associated with lineup performance (glm, p<0.05)
 - All player stats and play-by-play data was obtained from [www.basketball-reference.com](https://www.basketball-reference.com/).  
 - For convience, play-by-play data was used from [this Kaggle dataset](https://www.kaggle.com/datasets/schmadam97/nba-playbyplay-data-20182019?resource=download)
 - For the purposes of this analysis we only focused on the 2016 NBA season.  
