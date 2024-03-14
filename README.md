@@ -1,5 +1,4 @@
-# Tools1 Final Project  
-The Brians take on basketball...
+# Unveiling the Ultimate NBA 5-Player Lineup of 2016
   
 Group Members: Brian Hanson, Brian Miller  
 March 9th, 2023  
